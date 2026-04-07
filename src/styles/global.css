@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+    /* This defines your custom Zenfi colors */
+    --color-zenfi-cream: #FDF8F2;
+    --color-zenfi-blush: #FFF8F5;
+    --color-zenfi-sand: #EDE8DF;
+    --color-zenfi-divider: #F5F0EA;
+    --color-zenfi-brown: #3D3530;
+    --color-zenfi-taupe: #A89A92;
+    --color-zenfi-placeholder: #C4B9B0;
+    --color-zenfi-terra: #E07A5F;
+    --color-zenfi-terra-dark: #D4664A;
+    --color-zenfi-sage: #81B29A;
+    
+    --color-zenfi-dark: #1B263B;
+    --color-zenfi-mint: #B7E4C7;
+    --color-zenfi-sand: #F1E3D3;
+    --color-zenfi-light: #F8F9FA;
+
+}
+
+.nunito {
+  font-family: "Nunito", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}

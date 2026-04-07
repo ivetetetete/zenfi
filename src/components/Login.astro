@@ -1,0 +1,65 @@
+---
+// src/components/Auth.astro
+---
+
+<div>
+  
+  <form id="login-form" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-zenfi-dark/70 mb-1">Email</label>
+      <input 
+        type="email" 
+        id="email" 
+        required 
+        class="w-full px-4 py-2 rounded-lg border border-zenfi-sand focus:ring-2 focus:ring-zenfi-terra outline-none transition"
+        placeholder="tu@email.com"
+      />
+    </div>
+    
+    <div>
+      <label class="block text-sm font-medium text-zenfi-dark/70 mb-1">Contraseña</label>
+      <input 
+        type="password" 
+        id="password" 
+        required 
+        class="w-full px-4 py-2 rounded-lg border border-zenfi-sand focus:ring-2 focus:ring-zenfi-terra outline-none transition"
+        placeholder="••••••••"
+      />
+    </div>
+
+    <button 
+      type="submit" 
+      class="w-full bg-zenfi-terra text-white font-bold py-3 rounded-lg hover:bg-zenfi-terra-dark transition-all duration-300 shadow-md"
+    >
+      Iniciar Sesión
+    </button>
+  </form>
+
+  <p id="error-msg" class="text-red-500 text-sm mt-4 hidden text-center"></p>
+</div>
+
+<script>
+  import { auth } from "../firebase/clients";
+  import { signInWithEmailAndPassword } from "firebase/auth";
+
+  const form = document.getElementById("login-form") as HTMLFormElement;
+  const errorMsg = document.getElementById("error-msg");
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = (document.getElementById("email") as HTMLInputElement).value;
+    const password = (document.getElementById("password") as HTMLInputElement).value;
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Usuario logueado:", userCredential.user);
+      // Redirigir al dashboard tras el éxito
+      window.location.href = "/dashboard"; 
+    } catch (error: any) {
+      if (errorMsg) {
+        errorMsg.textContent = "Error: Credenciales incorrectas";
+        errorMsg.classList.remove("hidden");
+      }
+    }
+  });
+</script>

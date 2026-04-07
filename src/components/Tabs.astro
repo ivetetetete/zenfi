@@ -1,0 +1,75 @@
+---
+import astroLogo from '../assets/astro.svg';
+import background from '../assets/background.svg';
+import Login from './Login.astro';
+import Register from './Register.astro';
+---
+
+
+<div id="container" class="bg-zenfi-sand p-3 rounded-2xl shadow w-full">
+    <div class="flex mb-4 bg-white rounded-xl overflow-hidden w-full mx-auto justify-center tab-bar transition-all">
+        <span id="loginTab" class="text-center py-2 font-bold cursor-pointer tab-active tab-pill m-2 w-full flex-1 p-3">Iniciar sesión</span>
+        <span id="signupTab" class="text-center py-2 font-bold cursor-pointer tab-pill m-2 flex-1 p-3">Crear cuenta</span>
+    </div>
+
+
+
+
+    <div id="loginPanel" class="bg-white w-full py-3 px-5 rounded-xl">
+        <Login />
+    </div>
+    <div id="signupPanel" class="bg-white w-full py-3 px-5 rounded-xl" style="display:none;">
+      <Register />
+    </div>
+    </div>
+
+    <script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const loginTab = document.getElementById('loginTab');
+        const signupTab = document.getElementById('signupTab');
+        const loginPanel = document.getElementById('loginPanel');
+        const signupPanel = document.getElementById('signupPanel');
+        if (loginTab && signupTab && loginPanel && signupPanel) {
+            loginTab.addEventListener('click', () => {
+                loginTab.classList.add('tab-active');
+                signupTab.classList.remove('tab-active');
+                loginPanel.style.display = 'block';
+                signupPanel.style.display = 'none';
+            });
+            signupTab.addEventListener('click', () => {
+                signupTab.classList.add('tab-active');
+                loginTab.classList.remove('tab-active');
+                signupPanel.style.display = 'block';
+                loginPanel.style.display = 'none';
+            });
+        }
+    });
+    </script>
+</div>
+
+<style>
+.tab-bar {
+    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+}
+.tab-pill {
+    transition: background 0.2s, color 0.2s;
+    border-radius: 0;
+}
+.tab-pill:first-child {
+    border-radius: 0.75rem;
+}
+.tab-pill:last-child {
+    border-radius: 0.75rem;
+}
+.tab-active {
+    background-color: #f5e9e0;
+    color: #7c5e48;
+}
+.tab-pill:not(.tab-active) {
+    background: transparent;
+    color: #7c5e48bb;
+}
+.tab-pill {
+    user-select: none;
+}
+</style>

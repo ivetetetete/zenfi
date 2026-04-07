@@ -1,0 +1,30 @@
+---
+import "../styles/global.css";
+import Layout from "../layouts/Layout.astro";
+import Login from "../components/Login.astro";
+import Tabs from "../components/Tabs.astro";
+import Navbar from "../components/Navbar.astro";
+import Card from "../components/Card.astro";
+
+// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
+// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+---
+
+<Layout>
+    <div class="bg-zenfi-sand min-h-screen flex">
+        <!-- <Navbar /> -->
+
+        <main class="flex-1 p-8"> 
+            <div class="mb-8">
+                <p class="text-zenfi-dark/60 font-medium">Good morning!</p>
+                <h1 class="text-3xl font-bold text-zenfi-dark">Here's your dashboard overview.</h1>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card userId="your-user-id" />
+                <!-- <Card type="spent" number="300€" />
+                <Card type="saved" number="1.000€" /> -->
+            </div>
+        </main>
+    </div>
+</Layout>

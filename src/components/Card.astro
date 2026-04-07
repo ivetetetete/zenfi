@@ -1,0 +1,305 @@
+---
+// IncomeCard.astro
+// Props: pass the userId from your auth session
+interface Props {
+  userId: string;
+}
+const { userId } = Astro.props;
+---
+
+<div
+  id="income-card"
+  data-user-id={userId}
+  class="group relative bg-white rounded-2xl border border-zenfi-sand shadow-sm p-5 transition-all duration-200"
+>
+
+  <!-- VIEW MODE -->
+  <div id="view-mode">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">💚</span>
+        <span class="text-xs font-extrabold text-zenfi-taupe uppercase tracking-widest">Income</span>
+      </div>
+      <!-- Edit button — hidden until hover -->
+      <button
+        id="edit-btn"
+        class="opacity-0 group-hover:opacity-100 flex items-center gap-1 text-xs font-bold text-zenfi-placeholder border border-zenfi-sand rounded-lg px-2.5 py-1.5 transition-all duration-200 hover:border-zenfi-terra hover:text-zenfi-terra hover:bg-[#FFF0EB]"
+      >
+        ✏️ Edit
+      </button>
+    </div>
+
+    <div id="view-amount" class="font-display text-3xl font-bold text-zenfi-sage mt-1">—</div>
+    <div id="view-meta" class="text-sm font-semibold text-zenfi-taupe mt-1 flex items-center gap-2"></div>
+    <div id="view-monthly" class="hidden mt-3 inline-flex items-center gap-1.5 bg-[#F0FAF4] rounded-xl px-3 py-1.5">
+      <span class="text-xs font-bold text-zenfi-sage">≈ <span id="monthly-equiv"></span> / month</span>
+    </div>
+  </div>
+
+  <!-- EDIT MODE (hidden by default) -->
+  <div id="edit-mode" class="hidden">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="text-xl">💚</span>
+      <span class="text-xs font-extrabold text-zenfi-taupe uppercase tracking-widest">Edit Income</span>
+    </div>
+
+    <div class="flex flex-col gap-4">
+
+      <!-- Source -->
+      <div>
+        <label class="block text-[11px] font-extrabold text-zenfi-taupe uppercase tracking-widest mb-2">
+          Income source
+        </label>
+        <input
+          id="input-source"
+          type="text"
+          placeholder="e.g. Salary, Freelance..."
+          class="w-full bg-zenfi-cream border-2 border-zenfi-sand rounded-xl px-4 py-2.5 text-sm font-semibold text-zenfi-brown placeholder-zenfi-placeholder outline-none transition-all focus:border-zenfi-terra focus:bg-white focus:shadow-[0_0_0_3px_rgba(224,122,95,0.08)]"
+        />
+      </div>
+
+      <!-- Frequency -->
+      <div>
+        <label class="block text-[11px] font-extrabold text-zenfi-taupe uppercase tracking-widest mb-2">
+          How often?
+        </label>
+        <div class="flex gap-2">
+          {["Monthly", "Bi-weekly", "Weekly", "Yearly"].map((f) => (
+            <button
+              data-freq={f}
+              class="freq-btn flex-1 bg-zenfi-cream border-2 border-zenfi-sand rounded-xl py-2 text-xs font-extrabold text-zenfi-taupe transition-all hover:border-zenfi-placeholder hover:text-zenfi-brown"
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Amount -->
+      <div>
+        <label id="amount-label" class="block text-[11px] font-extrabold text-zenfi-taupe uppercase tracking-widest mb-2">
+          Amount
+        </label>
+        <div class="relative">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zenfi-taupe font-black text-lg pointer-events-none">$</span>
+          <input
+            id="input-amount"
+            type="number"
+            min="0"
+            placeholder="0"
+            class="w-full bg-zenfi-cream border-2 border-zenfi-sand rounded-xl pl-8 pr-4 py-2.5 text-lg font-black text-zenfi-brown placeholder-zenfi-placeholder outline-none transition-all focus:border-zenfi-terra focus:bg-white focus:shadow-[0_0_0_3px_rgba(224,122,95,0.08)]"
+          />
+        </div>
+      </div>
+
+      <!-- Monthly preview (shown when non-monthly) -->
+      <div id="monthly-preview" class="hidden bg-[#F0FAF4] rounded-xl px-4 py-2.5 flex justify-between items-center">
+        <span class="text-sm font-bold text-zenfi-sage">Monthly equivalent</span>
+        <span id="preview-amount" class="font-display text-base font-bold text-zenfi-sage"></span>
+      </div>
+
+      <!-- Error -->
+      <div id="error-msg" class="hidden text-xs font-bold text-zenfi-terra bg-[#FFF0EB] rounded-xl px-4 py-2.5"></div>
+
+      <!-- Actions -->
+      <div class="flex gap-2 mt-1">
+        <button id="cancel-btn" class="bg-[#F5F0EA] text-zenfi-taupe font-bold text-sm rounded-xl px-4 py-2.5 transition-all hover:bg-zenfi-sand hover:text-zenfi-brown">
+          Cancel
+        </button>
+        <button id="save-btn" class="flex-1 flex items-center justify-center gap-2 bg-zenfi-terra text-white font-extrabold text-sm rounded-xl px-4 py-2.5 transition-all hover:bg-zenfi-terra-dark hover:shadow-[0_5px_16px_rgba(224,122,95,0.28)] hover:-translate-y-px disabled:bg-zenfi-sand disabled:text-zenfi-placeholder disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none">
+          <span id="save-label">Save changes</span>
+          <span id="save-spinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Saved toast -->
+  <div id="saved-toast" class="hidden absolute top-3 right-3 flex items-center gap-1.5 bg-[#F0FAF4] text-zenfi-sage text-xs font-extrabold px-3 py-1.5 rounded-lg shadow-sm animate-[checkPop_.35s_cubic-bezier(.16,1,.3,1)]">
+    ✓ Saved!
+  </div>
+
+</div>
+
+<script>
+  import { initializeApp, getApps } from "firebase/app";
+  import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
+
+  // ── Firebase config ── replace with your own values ──────────────────────
+  const firebaseConfig = {
+    apiKey:            import.meta.env.PUBLIC_FIREBASE_API_KEY,
+    authDomain:        import.meta.env.PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId:         import.meta.env.PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket:     import.meta.env.PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId:             import.meta.env.PUBLIC_FIREBASE_APP_ID,
+  };
+
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  const fmtCurrency = (n: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0 }).format(n);
+
+  const toMonthly = (amount: number, freq: string): number => {
+    if (freq === "Monthly")   return amount;
+    if (freq === "Bi-weekly") return amount * 2.17;
+    if (freq === "Weekly")    return amount * 4.33;
+    if (freq === "Yearly")    return amount / 12;
+    return amount;
+  };
+
+  // ── DOM refs ──────────────────────────────────────────────────────────────
+  const card          = document.getElementById("income-card")!;
+  const userId        = card.dataset.userId!;
+
+  const viewMode      = document.getElementById("view-mode")!;
+  const editMode      = document.getElementById("edit-mode")!;
+  const viewAmount    = document.getElementById("view-amount")!;
+  const viewMeta      = document.getElementById("view-meta")!;
+  const viewMonthly   = document.getElementById("view-monthly")!;
+  const monthlyEquiv  = document.getElementById("monthly-equiv")!;
+
+  const editBtn       = document.getElementById("edit-btn")!;
+  const cancelBtn     = document.getElementById("cancel-btn")!;
+  const saveBtn       = document.getElementById("save-btn") as HTMLButtonElement;
+  const saveLabel     = document.getElementById("save-label")!;
+  const saveSpinner   = document.getElementById("save-spinner")!;
+  const savedToast    = document.getElementById("saved-toast")!;
+  const errorMsg      = document.getElementById("error-msg")!;
+
+  const inputSource   = document.getElementById("input-source")   as HTMLInputElement;
+  const inputAmount   = document.getElementById("input-amount")   as HTMLInputElement;
+  const amountLabel   = document.getElementById("amount-label")!;
+  const freqBtns      = document.querySelectorAll<HTMLButtonElement>(".freq-btn");
+  const monthlyPrev   = document.getElementById("monthly-preview")!;
+  const previewAmt    = document.getElementById("preview-amount")!;
+
+  let selectedFreq = "Monthly";
+
+  // ── Render view mode ──────────────────────────────────────────────────────
+  function renderView(data: { amount: number; frequency: string; source: string }) {
+    viewAmount.textContent = fmtCurrency(data.amount);
+    viewMeta.innerHTML = `
+      <span>${data.source || "Income"}</span>
+      <span class="text-zenfi-sand">·</span>
+      <span>${data.frequency}</span>
+    `;
+    if (data.frequency !== "Monthly") {
+      monthlyEquiv.textContent = fmtCurrency(toMonthly(data.amount, data.frequency));
+      viewMonthly.classList.remove("hidden");
+    } else {
+      viewMonthly.classList.add("hidden");
+    }
+  }
+
+  // ── Load from Firestore ───────────────────────────────────────────────────
+  async function loadIncome() {
+    try {
+      const snap = await getDoc(doc(db, "users", userId));
+      if (snap.exists()) {
+        const data = snap.data();
+        const income = data.income ?? { amount: 0, frequency: "Monthly", source: "" };
+        renderView(income);
+        // Pre-fill edit fields
+        inputSource.value  = income.source   || "";
+        inputAmount.value  = income.amount   || "";
+        selectedFreq       = income.frequency || "Monthly";
+        setFreq(selectedFreq);
+      }
+    } catch (e) {
+      console.error("Failed to load income:", e);
+      viewAmount.textContent = "—";
+    }
+  }
+
+  // ── Save to Firestore ─────────────────────────────────────────────────────
+  async function saveIncome() {
+    errorMsg.classList.add("hidden");
+    const amount = parseFloat(inputAmount.value);
+    if (!inputAmount.value || isNaN(amount) || amount < 0) {
+      errorMsg.textContent = "Please enter a valid amount.";
+      errorMsg.classList.remove("hidden");
+      return;
+    }
+
+    // Loading state
+    saveLabel.textContent = "Saving...";
+    saveSpinner.classList.remove("hidden");
+    saveBtn.disabled = true;
+
+    try {
+      const income = { amount, frequency: selectedFreq, source: inputSource.value.trim() };
+      await updateDoc(doc(db, "users", userId), { income });
+
+      renderView(income);
+      showViewMode();
+
+      // Toast
+      savedToast.classList.remove("hidden");
+      setTimeout(() => savedToast.classList.add("hidden"), 2200);
+
+    } catch (e) {
+      console.error("Failed to save income:", e);
+      errorMsg.textContent = "Something went wrong. Please try again.";
+      errorMsg.classList.remove("hidden");
+    } finally {
+      saveLabel.textContent = "Save changes";
+      saveSpinner.classList.add("hidden");
+      saveBtn.disabled = false;
+    }
+  }
+
+  // ── UI transitions ────────────────────────────────────────────────────────
+  function showEditMode() {
+    viewMode.classList.add("hidden");
+    editMode.classList.remove("hidden");
+    updateMonthlyPreview();
+  }
+
+  function showViewMode() {
+    editMode.classList.add("hidden");
+    viewMode.classList.remove("hidden");
+  }
+
+  function setFreq(freq: string) {
+    selectedFreq = freq;
+    freqBtns.forEach((btn) => {
+      const isSelected = btn.dataset.freq === freq;
+      btn.classList.toggle("bg-[#FFF0EB]",     isSelected);
+      btn.classList.toggle("border-zenfi-terra", isSelected);
+      btn.classList.toggle("text-zenfi-terra",   isSelected);
+      btn.classList.toggle("bg-zenfi-cream",    !isSelected);
+      btn.classList.toggle("border-zenfi-sand", !isSelected);
+      btn.classList.toggle("text-zenfi-taupe",  !isSelected);
+    });
+    amountLabel.textContent = `Amount (${freq})`;
+    updateMonthlyPreview();
+  }
+
+  function updateMonthlyPreview() {
+    const amount = parseFloat(inputAmount.value);
+    if (selectedFreq !== "Monthly" && !isNaN(amount) && amount > 0) {
+      previewAmt.textContent = fmtCurrency(toMonthly(amount, selectedFreq));
+      monthlyPrev.classList.remove("hidden");
+    } else {
+      monthlyPrev.classList.add("hidden");
+    }
+  }
+
+  // ── Event listeners ───────────────────────────────────────────────────────
+  editBtn.addEventListener("click",   showEditMode);
+  cancelBtn.addEventListener("click", showViewMode);
+  saveBtn.addEventListener("click",   saveIncome);
+
+  freqBtns.forEach((btn) =>
+    btn.addEventListener("click", () => setFreq(btn.dataset.freq!))
+  );
+
+  inputAmount.addEventListener("input", updateMonthlyPreview);
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  loadIncome();
+</script>

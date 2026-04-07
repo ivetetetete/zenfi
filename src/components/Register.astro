@@ -1,0 +1,102 @@
+---
+// src/components/Register.astro
+---
+
+<div>  
+  <form id="register-form" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-zenfi-dark/70 mb-1">Nombre Completo</label>
+      <input 
+        type="text" 
+        id="reg-name" 
+        required 
+        class="w-full px-4 py-2 rounded-lg border border-zenfi-sand focus:ring-2 focus:ring-zenfi-terra outline-none transition"
+        placeholder="Ej. Alex Zen"
+      />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-zenfi-dark/70 mb-1">Email</label>
+      <input 
+        type="email" 
+        id="reg-email" 
+        required 
+        class="w-full px-4 py-2 rounded-lg border border-zenfi-sand focus:ring-2 focus:ring-zenfi-terra outline-none transition"
+        placeholder="tu@email.com"
+      />
+    </div>
+    
+    <div>
+      <label class="block text-sm font-medium text-zenfi-dark/70 mb-1">Contraseña</label>
+      <input 
+        type="password" 
+        id="reg-password" 
+        required 
+        minlength="6"
+        class="w-full px-4 py-2 rounded-lg border border-zenfi-sand focus:ring-2 focus:ring-zenfi-terra outline-none transition"
+        placeholder="Mínimo 6 caracteres"
+      />
+    </div>
+
+    <button 
+      type="submit" 
+      class="w-full bg-zenfi-terra text-white font-bold py-3 rounded-lg hover:bg-zenfi-terra-dark transition-all duration-300 shadow-md"
+    >
+      Crear cuenta gratis
+    </button>
+  </form>
+
+  <p id="reg-error-msg" class="text-red-500 text-sm mt-4 hidden text-center"></p>
+  
+  <p class="text-center text-sm text-zenfi-dark/50 mt-4">
+    ¿Ya tienes cuenta? <a href="/auth" class="text-zenfi-taupe font-bold hover:underline">Inicia sesión</a>
+  </p>
+</div>
+
+<script>
+  import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+  import { doc, setDoc } from "firebase/firestore"; // Importamos funciones de Firestore
+import { auth, db } from "../firebase/clients";
+
+  const form = document.getElementById("register-form") as HTMLFormElement;
+  const errorMsg = document.getElementById("reg-error-msg");
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    const name = (document.getElementById("reg-name") as HTMLInputElement).value;
+    const email = (document.getElementById("reg-email") as HTMLInputElement).value;
+    const password = (document.getElementById("reg-password") as HTMLInputElement).value;
+
+    try {
+      // 1. Crear el usuario en Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // 2. Actualizar el perfil básico (opcional pero recomendado)
+      await updateProfile(user, { displayName: name });
+
+      // 3. GUARDAR EN LA BASE DE DATOS (Firestore)
+      // Usamos el UID del usuario como ID del documento para que estén vinculados
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        displayName: name,
+        email: email,
+        createdAt: new Date().toISOString(),
+        balance: 0, // Iniciamos el saldo en 0 para Zenfi
+        preferences: {
+          currency: "EUR"
+        }
+      });
+
+      console.log("Usuario guardado en base de datos con éxito");
+      window.location.href = "/dashboard"; 
+
+    } catch (error: any) {
+      if (errorMsg) {
+        errorMsg.textContent = "Error al registrar: " + error.message;
+        errorMsg.classList.remove("hidden");
+      }
+    }
+  });
+</script>

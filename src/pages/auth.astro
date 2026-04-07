@@ -1,0 +1,18 @@
+---
+import "../styles/global.css";
+import Layout from "../layouts/Layout.astro";
+import Login from "../components/Login.astro";
+import Tabs from "../components/Tabs.astro";
+
+// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
+// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+---
+
+<Layout>
+    <div class="bg-zenfi-sand min-h-screen flex flex-col items-center justify-center">
+        <h1 class="text-2xl font-bold mb-4 text-zenfi-taupe">Welcome to Zenfi</h1>
+        <div class="bg-zenfi-cream rounded-2xl shadow p-5 w-1/3">
+            <Tabs />
+        </div>
+    </div>
+</Layout>
