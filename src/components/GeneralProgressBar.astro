@@ -1,0 +1,64 @@
+---
+interface Props {
+  id: string;
+  percentage: number; // 0 to 100
+  label?: string;
+  amount?: string;
+}
+
+const { percentage = 75, label = "Spent", amount = "$1,200" } = Astro.props;
+
+// SVG Constants
+const radius = 70;
+const stroke = 12;
+const normalizedRadius = radius - stroke * 2;
+const circumference = normalizedRadius * 2 * Math.PI;
+
+// Semicircle logic: We only show half of the circumference
+const semiCircumference = circumference / 2;
+const offset = semiCircumference - (percentage / 100) * semiCircumference;
+---
+
+<div
+  id={Astro.props.id}
+  class="relative flex flex-col items-center justify-center w-64 h-40 overflow-hidden m-auto"
+>
+  <svg height={radius * 2} width={radius * 2} class="transform -rotate-180">
+    <circle
+      stroke="currentColor"
+      fill="transparent"
+      stroke-width={stroke}
+      stroke-dasharray={`${semiCircumference} ${circumference}`}
+      style={{ strokeLinecap: "round" }}
+      class="text-zenfi-taupe"
+      r={normalizedRadius}
+      cx={radius}
+      cy={radius}></circle>
+    <circle
+      stroke="currentColor"
+      fill="transparent"
+      stroke-width={stroke}
+      stroke-dasharray={`${semiCircumference} ${circumference}`}
+      style={{
+        strokeDashoffset: offset,
+        transition: "stroke-dashoffset 0.5s ease-out",
+        strokeLinecap: "round",
+      }}
+      class="text-zenfi-sage"
+      r={normalizedRadius}
+      cx={radius}
+      cy={radius}></circle>
+  </svg>
+
+  <div class="absolute inset-0 flex flex-col items-center justify-end pb-4">
+    <span class="text-3xl font-bold text-zenfi-sage bar-percentage-text"
+      >{percentage}%</span
+    >
+    <span class="text-sm font-medium text-zenfi-taupe uppercase tracking-wider"
+      >{label}</span
+    >
+    <span class="text-lg font-semibold text-zenfi-sage bar-amount-text"
+      >{amount}</span
+    >
+  </div>
+</div>

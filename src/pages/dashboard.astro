@@ -1,30 +1,220 @@
 ---
 import "../styles/global.css";
-import Layout from "../layouts/Layout.astro";
-import Login from "../components/Login.astro";
-import Tabs from "../components/Tabs.astro";
-import Navbar from "../components/Navbar.astro";
-import Card from "../components/Card.astro";
+import GeneralProgressBar from "../components/GeneralProgressBar.astro";
+import DashboardLayout from "../layouts/DashboardLayout.astro";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+interface Props {
+  userId: string;
+}
+const { userId } = Astro.props;
 ---
 
-<Layout>
-    <div class="bg-zenfi-sand min-h-screen flex">
-        <!-- <Navbar /> -->
+<DashboardLayout>
+  <div class="flex flex-col pb-20 md:pb-0">
 
-        <main class="flex-1 p-8"> 
-            <div class="mb-8">
-                <p class="text-zenfi-dark/60 font-medium">Good morning!</p>
-                <h1 class="text-3xl font-bold text-zenfi-dark">Here's your dashboard overview.</h1>
-            </div>
+    <main class="flex-1 p-4 md:p-8 max-w-5xl mx-auto w-full space-y-6">
+      <header class="mt-4">
+        <p class="text-zenfi-taupe font-bold text-sm uppercase tracking-widest">
+          Resumen General
+        </p>
+        <h1 class="text-3xl font-black text-zenfi-brown">
+          Hola, <span id="user-name" class="text-zenfi-terra">...</span>!
+        </h1>
+      </header>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card userId="your-user-id" />
-                <!-- <Card type="spent" number="300€" />
-                <Card type="saved" number="1.000€" /> -->
-            </div>
-        </main>
-    </div>
-</Layout>
+      <div class="p-6 bg-white rounded-3xl border border-zenfi-sand shadow-sm">
+        <div id="budget-loading" class="animate-pulse flex space-y-4 flex-col">
+          <div class="h-4 bg-zenfi-cream rounded w-1/4"></div>
+          <div class="h-8 bg-zenfi-cream rounded w-3/4"></div>
+        </div>
+
+        <div id="budget-content" class="hidden">
+          <GeneralProgressBar
+            id="main-progress"
+            percentage={0}
+            label="Presupuesto Mensual"
+            amount="Calculating..."
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-3xl border border-zenfi-sand">
+          <p class="text-xs font-bold text-zenfi-taupe uppercase">Ingresos</p>
+          <p id="stat-income" class="text-xl font-black text-zenfi-brown mt-1">
+            --
+          </p>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-zenfi-sand">
+          <p class="text-xs font-bold text-zenfi-taupe uppercase">
+            Gastos Fijos
+          </p>
+          <p
+            id="stat-expenses"
+            class="text-xl font-black text-zenfi-terra mt-1"
+          >
+            --
+          </p>
+        </div>
+
+        <div
+          class="bg-white p-5 rounded-3xl border border-zenfi-sand col-span-2 md:col-span-1"
+        >
+          <p class="text-xs font-bold text-zenfi-taupe uppercase">
+            Meta Ahorro
+          </p>
+          <p id="stat-goal" class="text-xl font-black text-zenfi-sage mt-1">
+            --
+          </p>
+        </div>
+      </div>
+
+      <section class="space-y-4">
+        <h2 class="text-xl font-black text-zenfi-brown">
+          Tus Gastos Detallados
+        </h2>
+        <div id="expenses-list" class="grid gap-3">
+          <p class="text-zenfi-taupe italic text-sm">Cargando detalles...</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { auth, db } from "../firebase/clients";
+  import { onAuthStateChanged } from "firebase/auth";
+  import { doc, getDoc } from "firebase/firestore";
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "/login";
+      return;
+    }
+
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        const profile = data.financialProfile;
+        const userName = data.displayName || "Usuario";
+        const userNameElem = document.getElementById("user-name");
+        if (userNameElem) {
+          userNameElem.textContent = userName;
+        }
+
+        // Debugging: check your console to see if this prints!
+        console.log("Profile Data:", profile);
+
+        if (!profile) {
+          console.warn("No financial profile found for this user.");
+          return;
+        }
+
+        const income = profile.monthlyIncome || 1;
+        const expenses = profile.totalFixedExpenses || 0;
+        const cur =
+          profile.currency === "EUR"
+            ? "€"
+            : profile.currency === "USD"
+              ? "$"
+              : "£";
+
+        const percentage = Math.min(Math.round((expenses / income) * 100), 100);
+
+        // --- UI Elements ---
+        const container = document.getElementById("budget-content");
+        const loading = document.getElementById("budget-loading");
+
+        // SVG Constants (Matches your .astro file)
+        const radius = 70;
+        const stroke = 12;
+        const normalizedRadius = radius - stroke * 2;
+        const circumference = normalizedRadius * 2 * Math.PI;
+        const semiCircumference = circumference / 2;
+        const newOffset =
+          semiCircumference - (percentage / 100) * semiCircumference;
+
+        // Use a tiny timeout to ensure the DOM has rendered the "hidden" elements
+        setTimeout(() => {
+          loading?.classList.add("hidden");
+          container?.classList.remove("hidden");
+
+          // Updated selectors to be safer
+          const progressCircle = container?.querySelector(
+            "circle:last-of-type",
+          ) as SVGCircleElement;
+          const percentageText = container?.querySelector(".text-3xl");
+          const amountText = container?.querySelector(".text-lg");
+
+          if (progressCircle) {
+            progressCircle.style.strokeDashoffset = `${newOffset}`;
+          }
+          if (percentageText) {
+            percentageText.textContent = `${percentage}%`;
+          }
+          if (amountText) {
+            amountText.textContent = `${expenses}${cur} / ${income}${cur}`;
+          }
+
+          if (percentage >= 100 && progressCircle) {
+            progressCircle.classList.replace(
+              "text-zenfi-sage",
+              "text-zenfi-terra",
+            );
+          }
+
+          // Update other dashboard stats if they exist
+          const statIncome = document.getElementById("stat-income");
+          const statExpenses = document.getElementById("stat-expenses");
+          if (statIncome) statIncome.textContent = `${income}${cur}`;
+          if (statExpenses) statExpenses.textContent = `${expenses}${cur}`;
+        }, 50);
+
+        // --- Inside onAuthStateChanged, after your percentage logic ---
+
+        const listContainer = document.getElementById("expenses-list");
+
+        if (listContainer) {
+          const detail = profile.fixedExpensesDetail || [];
+
+          if (detail.length > 0) {
+            // Map through the array and create the HTML for each item
+            listContainer.innerHTML = detail
+              .map(
+                (item: { icon?: string; name: string; amount: number }) => `
+      <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-zenfi-sand shadow-sm hover:border-zenfi-terra transition-colors group">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 flex items-center justify-center bg-zenfi-cream rounded-xl text-2xl group-hover:bg-white transition-colors">
+            ${item.icon || "💸"}
+          </div>
+          <div>
+            <p class="font-bold text-zenfi-brown capitalize">${item.name}</p>
+            <p class="text-[10px] font-extrabold text-zenfi-taupe uppercase tracking-widest">Gasto Fijo</p>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="font-black text-zenfi-brown text-lg">${item.amount}${cur}</p>
+        </div>
+      </div>
+    `,
+              )
+              .join("");
+          } else {
+            listContainer.innerHTML = `
+      <div class="text-center py-8 border-2 border-dashed border-zenfi-sand rounded-3xl">
+        <p class="text-zenfi-taupe font-medium">No hay gastos detallados.</p>
+      </div>
+    `;
+          }
+        }
+      } else {
+        console.error("User document does not exist in Firestore.");
+      }
+    } catch (error) {
+      console.error("Dashboard error:", error);
+    }
+  });
+</script>

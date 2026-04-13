@@ -1,0 +1,316 @@
+---
+import DashboardLayout from "../layouts/DashboardLayout.astro";
+import { Plus, Search, X } from "@lucide/astro";
+---
+
+<DashboardLayout title="Categorías | Zenfi">
+  <div class="max-w-2xl mx-auto w-full space-y-8 pb-24 px-4 pt-20 md:pt-0">
+    <div class="flex flex-col gap-6">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h2 class="text-3xl font-black text-zenfi-brown">Categorías</h2>
+          <p class="text-zenfi-taupe font-medium">Gestiona tus sobres de gasto</p>
+        </div>
+        <button
+          id="add-category-btn"
+          class="bg-zenfi-brown text-white p-4 rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all"
+        >
+          <Plus class="w-6 h-6" />
+        </button>
+      </div>
+
+      <div class="relative group gap-x-3 flex items-center w-full bg-white border border-zenfi-sand rounded-2xl p-4 font-bold text-zenfi-brown shadow-sm">
+        <Search class="w-5 h-5 text-zenfi-taupe transition-colors" />
+        <input
+          type="text"
+          placeholder="Buscar categoría..."
+          class="focus:ring-0 w-full bg-transparent outline-none"
+        />
+      </div>
+    </div>
+
+    <div id="categories-grid" class="md:grid md:grid-cols-2 space-y-4 md:space-y-0 md:gap-4">
+      <div class="col-span-2 py-10 flex justify-center">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-zenfi-terra"></div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="detail-modal-overlay"
+    class="fixed inset-0 bg-black/60 backdrop-blur-md z-[160] hidden opacity-0 transition-opacity duration-300 flex items-end md:items-center justify-center p-4"
+  >
+    <div
+      id="detail-modal-sheet"
+      class="w-full bg-zenfi-cream rounded-[40px] p-8 transition-all duration-500 translate-y-full md:max-w-lg md:translate-y-10 shadow-2xl flex flex-col max-h-[85vh]"
+    >
+      <div class="flex justify-between items-start mb-6">
+        <div class="flex items-center gap-4">
+          <div id="detail-icon" class="text-4xl w-16 h-16 flex items-center justify-center bg-white rounded-3xl shadow-sm"></div>
+          <div>
+            <h3 id="detail-title" class="text-2xl font-black text-zenfi-brown"></h3>
+            <p id="detail-budget-label" class="text-[10px] font-black text-zenfi-taupe uppercase tracking-widest"></p>
+          </div>
+        </div>
+        <button id="close-detail-modal" class="bg-white text-zenfi-taupe p-2 rounded-full shadow-sm"><X class="w-5 h-5" /></button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mb-6">
+        <div class="bg-white/60 p-4 rounded-3xl border border-white">
+          <p class="text-[9px] font-black text-zenfi-taupe uppercase mb-1">Gastado</p>
+          <p id="detail-spent" class="text-xl font-black text-zenfi-terra"></p>
+        </div>
+        <div class="bg-white/60 p-4 rounded-3xl border border-white">
+          <p class="text-[9px] font-black text-zenfi-taupe uppercase mb-1">Disponible</p>
+          <p id="detail-remaining" class="text-xl font-black text-zenfi-sage"></p>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="detail-transactions-list">
+        </div>
+    </div>
+  </div>
+
+  <div id="cat-modal-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-md z-[150] hidden opacity-0 transition-opacity duration-300 flex items-end md:items-center justify-center">
+    <div id="cat-modal-sheet" class="w-full bg-white rounded-t-[40px] p-8 transition-all duration-500 translate-y-full md:max-w-md md:rounded-[40px] shadow-2xl">
+      <div class="flex justify-between items-center mb-8">
+        <h3 class="text-2xl font-black text-zenfi-brown">Nueva Categoría</h3>
+        <button id="close-cat-modal" class="bg-zenfi-cream text-zenfi-taupe p-2 rounded-full"><X class="w-5 h-5" /></button>
+      </div>
+
+      <form id="category-form" class="space-y-6">
+        <div class="space-y-2 text-center">
+          <label class="block text-[11px] font-black text-zenfi-taupe uppercase tracking-widest">Icono</label>
+          <button type="button" id="emoji-trigger" class="w-24 h-24 text-4xl flex items-center justify-center bg-zenfi-cream border-2 border-dashed border-zenfi-sand rounded-3xl hover:border-zenfi-terra transition-all mx-auto">🏠</button>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-[11px] font-black text-zenfi-taupe uppercase tracking-widest ml-2">Nombre</label>
+          <input id="cat-name" type="text" required placeholder="Ej. Comida" class="w-full bg-zenfi-cream border-none rounded-2xl py-4 px-6 font-bold text-zenfi-brown outline-none" />
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-[11px] font-black text-zenfi-taupe uppercase tracking-widest ml-2">Presupuesto Mensual</label>
+          <input id="cat-budget" type="number" required placeholder="0.00" class="w-full bg-zenfi-cream border-none rounded-2xl py-4 px-6 font-bold text-zenfi-brown outline-none" />
+        </div>
+
+        <button type="submit" id="submit-cat" class="w-full bg-zenfi-brown text-white py-5 rounded-[24px] font-black text-lg shadow-xl active:scale-95 transition-all">Crear Categoría</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="emoji-picker-container" class="fixed inset-0 z-[200] hidden flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-[32px] p-4 shadow-2xl w-full max-w-xs">
+      <div class="flex justify-between items-center mb-4 px-2">
+        <span class="font-black text-zenfi-brown">Selecciona un icono</span>
+        <button id="close-picker" class="text-zenfi-taupe">✕</button>
+      </div>
+      <div id="picker-mount"></div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { auth, db } from "../firebase/clients";
+  import { onAuthStateChanged } from "firebase/auth";
+  import { arrayUnion, doc, getDoc, updateDoc, collection, getDocs, query, orderBy } from "firebase/firestore";
+  import "emoji-picker-element";
+
+  let currentUserId: string | null = null;
+  let profileData: any = null;
+  let allTransactions: any[] = [];
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = "/auth"; return; }
+    currentUserId = user.uid;
+    await loadData();
+  });
+
+  async function loadData() {
+    if (!currentUserId) return;
+    try {
+      // Load Profile
+      const userDoc = await getDoc(doc(db, "users", currentUserId));
+      
+      // Load Transactions from sub-collection
+      const transRef = collection(db, "users", currentUserId, "transactions");
+      const q = query(transRef, orderBy("createdAt", "desc"));
+      const transSnapshot = await getDocs(q);
+      
+      allTransactions = transSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      if (userDoc.exists()) {
+        profileData = userDoc.data().financialProfile;
+        renderCategories();
+      }
+    } catch (e) {
+      console.error("Error loading data:", e);
+    }
+  }
+
+  function renderCategories() {
+    const grid = document.getElementById("categories-grid");
+    if (!grid || !profileData) return;
+
+    const categories = profileData.categories || [];
+    const cur = profileData.currency === "EUR" ? "€" : "$";
+
+    if (categories.length === 0) {
+      grid.innerHTML = `<p class="col-span-2 text-center text-zenfi-taupe py-10 font-medium">No hay categorías configuradas.</p>`;
+      return;
+    }
+
+    grid.innerHTML = categories.map((cat: any) => {
+      // Calculate spent for THIS category
+      const spent = allTransactions
+        .filter(t => t.category === cat.name && t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      const percentage = Math.min(Math.round((spent / cat.budget) * 100), 100);
+
+      return `
+        <div class="bg-white border border-zenfi-sand p-6 rounded-[32px] shadow-sm flex flex-col gap-4 transition-all hover:shadow-md">
+          <div class="flex items-center gap-4">
+            <div class="text-2xl w-12 h-12 flex items-center justify-center bg-zenfi-cream rounded-2xl">${cat.icon || "📦"}</div>
+            <div class="flex-1">
+              <h3 class="font-black text-zenfi-brown leading-tight">${cat.name}</h3>
+              <p class="text-[10px] font-bold text-zenfi-taupe uppercase tracking-widest">Prespuesto: ${cat.budget}${cur}</p>
+            </div>
+            <button onclick="window.openCatDetail('${cat.name.replace(/'/g, "\\'")}')" class="bg-zenfi-sand/40 hover:bg-zenfi-sand/70 text-zenfi-brown text-[10px] font-black uppercase px-4 py-2 rounded-xl transition-all active:scale-95">
+              Detalles
+            </button>
+          </div>
+          
+          <div class="space-y-1">
+            <div class="flex justify-between text-[10px] font-black text-zenfi-taupe uppercase">
+              <span>${spent}${cur} gastados</span>
+              <span>${percentage}%</span>
+            </div>
+            <div class="w-full bg-zenfi-cream h-2.5 rounded-full overflow-hidden">
+              <div class="h-full bg-zenfi-terra rounded-full transition-all duration-1000" style="width: ${percentage}%"></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // Global Function for Detail Modal
+  (window as any).openCatDetail = (catName: string) => {
+    const cat = profileData.categories.find((c: any) => c.name === catName);
+    const transactions = allTransactions.filter(t => t.category === catName);
+    const spent = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const cur = profileData.currency === "EUR" ? "€" : "$";
+
+    // Update Header
+    document.getElementById("detail-title")!.textContent = cat.name;
+    document.getElementById("detail-icon")!.textContent = cat.icon || "📦";
+    document.getElementById("detail-budget-label")!.textContent = `Presupuesto: ${cat.budget}${cur}`;
+    
+    // Update Stats
+    document.getElementById("detail-spent")!.textContent = `${spent}${cur}`;
+    document.getElementById("detail-remaining")!.textContent = `${(cat.budget - spent).toFixed(2)}${cur}`;
+
+    // Update List
+    const list = document.getElementById("detail-transactions-list")!;
+    if (transactions.length === 0) {
+      list.innerHTML = `<p class="text-center py-10 text-zenfi-taupe font-medium text-sm">No hay movimientos aún.</p>`;
+    } else {
+      list.innerHTML = transactions.map(t => `
+        <div class="bg-white/80 p-4 rounded-2xl flex justify-between items-center border border-white shadow-sm">
+          <div>
+            <p class="font-bold text-zenfi-brown text-sm">${t.description}</p>
+            <p class="text-[9px] text-zenfi-taupe font-bold uppercase">${t.createdAt ? new Date(t.createdAt.seconds * 1000).toLocaleDateString() : 'Reciente'}</p>
+          </div>
+          <p class="font-black ${t.type === 'income' ? 'text-zenfi-sage' : 'text-zenfi-terra'}">
+            ${t.type === 'income' ? '+' : '-'}${t.amount}${cur}
+          </p>
+        </div>
+      `).join("");
+    }
+
+    // Show Modal
+    const modal = document.getElementById("detail-modal-overlay");
+    const sheet = document.getElementById("detail-modal-sheet");
+    modal?.classList.remove("hidden");
+    setTimeout(() => {
+      modal?.classList.add("opacity-100");
+      sheet?.classList.remove("translate-y-full");
+    }, 50);
+  };
+
+  // Close Detail Modal
+  document.getElementById("close-detail-modal")?.addEventListener("click", () => {
+    const modal = document.getElementById("detail-modal-overlay");
+    const sheet = document.getElementById("detail-modal-sheet");
+    modal?.classList.remove("opacity-100");
+    sheet?.classList.add("translate-y-full");
+    setTimeout(() => modal?.classList.add("hidden"), 400);
+  });
+
+  // Category Modal Logic (Add)
+  const addBtn = document.getElementById("add-category-btn");
+  const catOverlay = document.getElementById("cat-modal-overlay");
+  const catSheet = document.getElementById("cat-modal-sheet");
+  const closeCat = document.getElementById("close-cat-modal");
+
+  addBtn?.addEventListener("click", () => {
+    catOverlay?.classList.remove("hidden");
+    setTimeout(() => {
+      catOverlay?.classList.add("opacity-100");
+      catSheet?.classList.remove("translate-y-full");
+    }, 50);
+  });
+
+  closeCat?.addEventListener("click", () => {
+    catOverlay?.classList.remove("opacity-100");
+    catSheet?.classList.add("translate-y-full");
+    setTimeout(() => catOverlay?.classList.add("hidden"), 400);
+  });
+
+  // Form Submission
+  const categoryForm = document.getElementById("category-form") as HTMLFormElement;
+  categoryForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const submitBtn = document.getElementById("submit-cat") as HTMLButtonElement;
+    const name = (document.getElementById("cat-name") as HTMLInputElement).value;
+    const budget = parseFloat((document.getElementById("cat-budget") as HTMLInputElement).value);
+    const icon = document.getElementById("emoji-trigger")?.textContent?.trim() || "📦";
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Creando...";
+
+    try {
+      await updateDoc(doc(db, "users", currentUserId!), {
+        "financialProfile.categories": arrayUnion({ name, budget, icon })
+      });
+      location.reload();
+    } catch (e) {
+      console.error(e);
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Error ❌";
+    }
+  });
+
+  // Emoji Picker Logic
+  const emojiTrigger = document.getElementById("emoji-trigger");
+  const pickerMount = document.getElementById("picker-mount");
+  const pickerContainer = document.getElementById("emoji-picker-container");
+  
+  if (pickerMount && !pickerMount.querySelector('emoji-picker')) {
+    const picker = document.createElement("emoji-picker");
+    pickerMount.appendChild(picker);
+    picker.addEventListener("emoji-click", (ev: any) => {
+      if (emojiTrigger) emojiTrigger.textContent = ev.detail.unicode;
+      pickerContainer?.classList.add("hidden");
+    });
+  }
+
+  emojiTrigger?.addEventListener("click", () => pickerContainer?.classList.remove("hidden"));
+  document.getElementById("close-picker")?.addEventListener("click", () => pickerContainer?.classList.add("hidden"));
+</script>
+
+<style>
+  @reference "../styles/global.css";
+  emoji-picker { width: 100%; height: 320px; border: none; }
+</style>

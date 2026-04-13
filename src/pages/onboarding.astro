@@ -1,0 +1,466 @@
+---
+import "../styles/global.css";
+import Layout from "../layouts/Layout.astro";
+
+interface Props {
+  userId: string;
+}
+const { userId } = Astro.props;
+---
+
+<Layout>
+  <section class="flex flex-col items-center justify-center">
+    <div
+      id="wizard-container"
+      data-user-id={userId}
+      class="w-full max-w-md bg-white rounded-3xl border border-zenfi-sand shadow-sm p-8 relative overflow-hidden"
+    >
+      <div class="absolute top-0 left-0 w-full h-1.5 bg-zenfi-divider">
+        <div
+          id="progress-bar"
+          class="h-full bg-zenfi-sage transition-all duration-500 w-1/4"
+        >
+        </div>
+      </div>
+
+      <form id="onboarding-form">
+        <div id="step-1" class="step-content space-y-6">
+          <header class="text-center">
+            <div class="text-3xl mb-4">🌍</div>
+            <h1 class="text-2xl font-black text-zenfi-brown tracking-tight">
+              Elige tu moneda
+            </h1>
+            <p class="text-zenfi-taupe font-semibold mt-2">
+              ¿Con qué divisa gestionas tus finanzas?
+            </p>
+          </header>
+          <div class="grid grid-cols-3 gap-3">
+            {
+              [
+                { s: "€", v: "EUR" },
+                { s: "$", v: "USD" },
+                { s: "£", v: "GBP" },
+              ].map((c) => (
+                <button
+                  type="button"
+                  data-currency={c.v}
+                  data-symbol={c.s}
+                  data-next="2"
+                  class="currency-btn flex flex-col items-center border-2 border-zenfi-sand bg-zenfi-cream py-4 rounded-2xl transition-all hover:border-zenfi-terra group"
+                >
+                  <span class="text-2xl font-black text-zenfi-brown group-hover:text-zenfi-terra">
+                    {c.s}
+                  </span>
+                  <span class="text-[10px] font-extrabold text-zenfi-taupe uppercase tracking-widest mt-1">
+                    {c.v}
+                  </span>
+                </button>
+              ))
+            }
+          </div>
+          <input type="hidden" id="currency-input" value="EUR" />
+        </div>
+
+        <div id="step-2" class="step-content hidden space-y-6">
+          <header class="text-center">
+            <div class="text-3xl mb-4">💰</div>
+            <h1 class="text-2xl font-black text-zenfi-brown tracking-tight">
+              Ingresos mensuales
+            </h1>
+            <p class="text-zenfi-taupe font-semibold mt-2">
+              ¿Cuáles son tus ingresos netos?
+            </p>
+          </header>
+          <div class="relative">
+            <span
+              class="currency-symbol absolute left-4 top-1/2 -translate-y-1/2 text-zenfi-taupe font-black text-xl"
+              >€</span
+            >
+            <input
+              type="number"
+              id="income-input"
+              required
+              placeholder="0"
+              class="w-full bg-zenfi-cream border-2 border-zenfi-sand rounded-2xl pl-10 pr-4 py-4 text-xl font-black text-zenfi-brown outline-none focus:border-zenfi-terra transition-all"
+            />
+          </div>
+          <div class="flex gap-3">
+            <button
+              type="button"
+              data-next="1"
+              class="flex-1 bg-zenfi-divider text-zenfi-taupe font-bold py-4 rounded-xl tracking-tight"
+              >Atrás</button
+            >
+            <button
+              type="button"
+              data-next="3"
+              class="flex-[2] bg-zenfi-terra text-white font-extrabold py-4 rounded-xl shadow-lg"
+              >Siguiente</button
+            >
+          </div>
+        </div>
+
+        <div id="step-3" class="step-content hidden space-y-6">
+          <header class="text-center">
+            <div class="text-3xl mb-4">🏠</div>
+            <h1 class="text-2xl font-black text-zenfi-brown tracking-tight">
+              Gastos Fijos
+            </h1>
+            <p class="text-zenfi-taupe font-semibold mt-2">
+              Añade tus gastos mensuales recurrentes.
+            </p>
+          </header>
+
+          <div
+            id="categories-container"
+            class="space-y-3 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar"
+          >
+            <div class="category-row flex gap-2 items-center">
+              <button
+                type="button"
+                class="emoji-trigger w-12 h-11 flex items-center justify-center bg-zenfi-cream border-2 border-zenfi-sand rounded-xl text-xl hover:border-zenfi-terra transition-all"
+                >🏠</button
+              >
+              <input type="hidden" class="cat-icon" value="🏠" />
+              <input
+                type="text"
+                placeholder="Alquiler"
+                class="cat-name flex-1 bg-zenfi-cream border-2 border-zenfi-sand rounded-xl px-3 py-2.5 text-sm font-bold text-zenfi-brown outline-none focus:border-zenfi-terra"
+              />
+              <div class="relative w-24">
+                <span
+                  class="currency-symbol absolute left-2 top-1/2 -translate-y-1/2 text-zenfi-taupe text-xs font-bold"
+                  >€</span
+                >
+                <input
+                  type="number"
+                  placeholder="0"
+                  class="cat-amount w-full bg-zenfi-cream border-2 border-zenfi-sand rounded-xl pl-5 pr-2 py-2.5 text-sm font-bold text-zenfi-brown outline-none focus:border-zenfi-terra"
+                />
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="add-category"
+            class="w-full py-3 border-2 border-dashed border-zenfi-sand rounded-xl text-zenfi-taupe font-bold text-xs hover:bg-zenfi-cream hover:text-zenfi-terra transition-all"
+            >+ Añadir otro gasto</button
+          >
+
+          <div class="flex gap-3">
+            <button
+              type="button"
+              data-next="2"
+              class="flex-1 bg-zenfi-divider text-zenfi-taupe font-bold py-4 rounded-xl tracking-tight"
+              >Atrás</button
+            >
+            <button
+              type="button"
+              data-next="4"
+              class="flex-[2] bg-zenfi-terra text-white font-extrabold py-4 rounded-xl shadow-lg"
+              >Continuar</button
+            >
+          </div>
+        </div>
+
+        <div id="step-4" class="step-content hidden space-y-6">
+          <header class="text-center">
+            <div class="text-3xl mb-4">🎯</div>
+            <h1 class="text-2xl font-black text-zenfi-brown tracking-tight">
+              Meta de Ahorro
+            </h1>
+            <p class="text-zenfi-taupe font-semibold mt-2">
+              ¿Qué porcentaje quieres ahorrar?
+            </p>
+          </header>
+
+          <div class="grid grid-cols-2 gap-3" id="goal-options">
+            {
+              [10, 15, 20].map((n) => (
+                <button
+                  type="button"
+                  data-val={n}
+                  class="goal-btn border-2 border-zenfi-sand bg-zenfi-cream py-4 rounded-2xl font-black text-zenfi-taupe hover:border-zenfi-sage transition-all"
+                >
+                  {n}%
+                </button>
+              ))
+            }
+            <button
+              type="button"
+              id="custom-goal-btn"
+              class="border-2 border-zenfi-sand bg-zenfi-cream py-4 rounded-2xl font-black text-zenfi-taupe hover:border-zenfi-sage transition-all"
+            >
+              Personalizado
+            </button>
+          </div>
+
+          <div
+            id="custom-goal-container"
+            class="hidden animate-in fade-in slide-in-from-top-2"
+          >
+            <div class="relative">
+              <input
+                type="number"
+                id="custom-goal-input"
+                placeholder="Introduce %"
+                class="w-full bg-zenfi-cream border-2 border-zenfi-sand rounded-2xl px-4 py-4 font-black text-zenfi-brown outline-none focus:border-zenfi-terra"
+              />
+              <span
+                class="absolute right-4 top-1/2 -translate-y-1/2 font-black text-zenfi-taupe"
+                >%</span
+              >
+            </div>
+          </div>
+
+          <input type="hidden" id="goal-input" value="15" />
+
+          <div class="flex gap-3 pt-2">
+            <button
+              type="button"
+              data-next="3"
+              class="flex-1 bg-zenfi-divider text-zenfi-taupe font-bold py-4 rounded-xl tracking-tight"
+              >Atrás</button
+            >
+            <button
+              type="submit"
+              id="finish-btn"
+              class="flex-[2] bg-zenfi-sage text-white font-extrabold py-4 rounded-xl shadow-lg shadow-zenfi-sage/20"
+              >Finalizar</button
+            >
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <div
+    id="emoji-modal"
+    class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zenfi-brown/40 backdrop-blur-sm"
+  >
+    <div
+      class="bg-white rounded-3xl shadow-2xl p-4 w-full max-w-[350px] animate-in zoom-in-95 duration-200"
+    >
+      <header class="flex justify-between items-center mb-3 px-2">
+        <span class="font-black text-zenfi-brown">Elige un icono</span>
+        <button type="button" id="close-emoji" class="text-xl">✕</button>
+      </header>
+      <emoji-picker class="light w-full border-none shadow-none"></emoji-picker>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  /* Zenfi Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e5ded4;
+    border-radius: 10px;
+  }
+
+  /* Theming the emoji picker to match Zenfi */
+  emoji-picker {
+    --num-columns: 6;
+    --emoji-size: 1.5rem;
+    --background: #ffffff;
+    --border-color: transparent;
+    height: 350px;
+  }
+</style>
+
+<script>
+  import 'emoji-picker-element';
+  import { db, auth } from "../firebase/clients";
+  import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+
+  // --- DOM Elements ---
+  const wizard = document.getElementById("wizard-container");
+  const userId = wizard?.dataset.userId;
+  const progressBar = document.getElementById("progress-bar");
+  const form = document.getElementById("onboarding-form") as HTMLFormElement;
+  
+  // Inputs
+  const incomeInput = document.getElementById("income-input") as HTMLInputElement;
+  const currencyInput = document.getElementById("currency-input") as HTMLInputElement;
+  const goalInput = document.getElementById("goal-input") as HTMLInputElement;
+  const customGoalInput = document.getElementById("custom-goal-input") as HTMLInputElement;
+  
+  // Containers/UI
+  const categoriesContainer = document.getElementById("categories-container");
+  const customGoalContainer = document.getElementById("custom-goal-container");
+  const emojiModal = document.getElementById("emoji-modal");
+  const picker = document.querySelector('emoji-picker');
+
+  // State trackers
+  let activeTrigger: HTMLElement | null = null;
+  let activeInput: HTMLInputElement | null = null;
+
+  // --- Navigation Logic ---
+  const goToStep = (step: number) => {
+    document.querySelectorAll(".step-content").forEach(el => el.classList.add("hidden"));
+    document.getElementById(`step-${step}`)?.classList.remove("hidden");
+    if (progressBar) progressBar.style.width = `${(step / 4) * 100}%`;
+  };
+
+  // --- Goal UI Selection Logic (The Fix) ---
+  const updateGoalUI = (selectedValue: string) => {
+    goalInput.value = selectedValue;
+
+    document.querySelectorAll(".goal-btn, #custom-goal-btn").forEach((btn) => {
+      const b = btn as HTMLElement;
+      // It's selected if the data-val matches OR if it's the custom button and the value isn't a preset
+      const isSelected = b.dataset.val === selectedValue || 
+                        (b.id === "custom-goal-btn" && !["10", "15", "20"].includes(selectedValue));
+
+      if (isSelected) {
+        b.classList.add("border-zenfi-sage", "text-zenfi-sage", "bg-white");
+        b.classList.remove("border-zenfi-sand", "bg-zenfi-cream", "text-zenfi-taupe");
+      } else {
+        b.classList.remove("border-zenfi-sage", "text-zenfi-sage", "bg-white");
+        b.classList.add("border-zenfi-sand", "bg-zenfi-cream", "text-zenfi-taupe");
+      }
+    });
+  };
+
+  // --- Event Listeners ---
+
+  // 1. Dynamic Category Addition
+  document.getElementById("add-category")?.addEventListener("click", () => {
+    const sym = document.querySelector(".currency-symbol")?.textContent || '€';
+    const row = document.createElement("div");
+    row.className = "category-row flex gap-2 items-center animate-in fade-in slide-in-from-bottom-2";
+    row.innerHTML = `
+      <button type="button" class="emoji-trigger w-12 h-11 flex items-center justify-center bg-zenfi-cream border-2 border-zenfi-sand rounded-xl text-xl hover:border-zenfi-terra transition-all">✨</button>
+      <input type="hidden" class="cat-icon" value="✨" />
+      <input type="text" placeholder="Gasto..." class="cat-name flex-1 bg-zenfi-cream border-2 border-zenfi-sand rounded-xl px-3 py-2.5 text-sm font-bold text-zenfi-brown outline-none focus:border-zenfi-terra" />
+      <div class="relative w-24">
+        <span class="currency-symbol absolute left-2 top-1/2 -translate-y-1/2 text-zenfi-taupe text-xs font-bold">${sym}</span>
+        <input type="number" placeholder="0" class="cat-amount w-full bg-zenfi-cream border-2 border-zenfi-sand rounded-xl pl-5 pr-2 py-2.5 text-sm font-bold text-zenfi-brown outline-none focus:border-zenfi-terra" />
+      </div>
+      <button type="button" class="remove-row text-zenfi-placeholder hover:text-zenfi-terra text-lg px-1">✕</button>
+    `;
+    categoriesContainer?.appendChild(row);
+    row.querySelector(".remove-row")?.addEventListener("click", () => row.remove());
+  });
+
+  // 2. Global Click Delegation
+  document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+
+    // Open Emoji Modal
+    const trigger = target.closest(".emoji-trigger") as HTMLElement;
+    if (trigger) {
+      activeTrigger = trigger;
+      activeInput = trigger.nextElementSibling as HTMLInputElement;
+      emojiModal?.classList.remove("hidden");
+    }
+
+    // Currency Choice
+    const curBtn = target.closest(".currency-btn") as HTMLElement;
+    if (curBtn) {
+      const sym = curBtn.dataset.symbol || '€';
+      currencyInput.value = curBtn.dataset.currency || 'EUR';
+      document.querySelectorAll(".currency-symbol").forEach(s => s.textContent = sym);
+      goToStep(2);
+    }
+
+    // Step Navigation (Next/Back)
+    if (target.matches("[data-next]")) {
+      goToStep(parseInt(target.dataset.next || "1"));
+    }
+
+    // Preset Goal Selection
+    const goalBtn = target.closest(".goal-btn") as HTMLElement;
+    if (goalBtn) {
+      customGoalContainer?.classList.add("hidden");
+      updateGoalUI(goalBtn.dataset.val || "15");
+    }
+
+    // Custom Goal Toggle
+    if (target.closest("#custom-goal-btn")) {
+      customGoalContainer?.classList.remove("hidden");
+      customGoalInput?.focus();
+      updateGoalUI("custom");
+    }
+
+    // Close Modals
+    if (target.id === "emoji-modal" || target.id === "close-emoji") {
+      emojiModal?.classList.add("hidden");
+    }
+  });
+
+  // 3. Emoji Picker Selection
+  picker?.addEventListener('emoji-click', (event: any) => {
+    if (activeTrigger && activeInput) {
+      const emoji = event.detail.unicode;
+      activeTrigger.innerText = emoji;
+      activeInput.value = emoji;
+      emojiModal?.classList.add("hidden");
+    }
+  });
+
+  // 4. Custom Goal Input Observer
+  customGoalInput?.addEventListener("input", (e) => {
+    const val = (e.target as HTMLInputElement).value;
+    if (val) goalInput.value = val;
+  });
+
+  // 5. Final Form Submission
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!auth.currentUser) return;
+
+    const finishBtn = document.getElementById("finish-btn") as HTMLButtonElement;
+    finishBtn.disabled = true;
+    finishBtn.innerText = "Guardando...";
+
+    const income = parseFloat(incomeInput.value) || 0;
+    const goal = parseInt(goalInput.value);
+    
+    // Process Categories Array
+    const rows = document.querySelectorAll(".category-row");
+    const detail: any[] = [];
+    let totalEx = 0;
+
+    rows.forEach(r => {
+      const name = (r.querySelector(".cat-name") as HTMLInputElement).value;
+      const amount = parseFloat((r.querySelector(".cat-amount") as HTMLInputElement).value) || 0;
+      if (name && amount > 0) {
+        detail.push({ 
+            icon: (r.querySelector(".cat-icon") as HTMLInputElement).value, 
+            name, 
+            amount 
+        });
+        totalEx += amount;
+      }
+    });
+
+    try {
+      await updateDoc(doc(db, "users", auth.currentUser.uid), {
+        onboardingCompleted: true,
+        financialProfile: {
+          monthlyIncome: income,
+          totalFixedExpenses: totalEx,
+          fixedExpensesDetail: detail,
+          savingsGoalPercentage: goal,
+          currency: currencyInput.value,
+          updatedAt: serverTimestamp(),
+        },
+      });
+      window.location.href = "/dashboard";
+    } catch (err) {
+      console.error("Firebase Error:", err);
+      finishBtn.disabled = false;
+      finishBtn.innerText = "Error, reintentar";
+    }
+  });
+
+  // Initial State
+  updateGoalUI("15");
+</script>

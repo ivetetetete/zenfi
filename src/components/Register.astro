@@ -84,13 +84,10 @@ import { auth, db } from "../firebase/clients";
         email: email,
         createdAt: new Date().toISOString(),
         balance: 0, // Iniciamos el saldo en 0 para Zenfi
-        preferences: {
-          currency: "EUR"
-        }
       });
 
       console.log("Usuario guardado en base de datos con éxito");
-      window.location.href = "/dashboard"; 
+      window.location.href = "/onboarding"; // Redirigir al onboarding tras el éxito
 
     } catch (error: any) {
       if (errorMsg) {

@@ -12,6 +12,7 @@
     "@lucide/astro": "^0.577.0",
     "@tailwindcss/vite": "^4.2.1",
     "astro": "^5.17.1",
+    "emoji-picker-element": "^1.29.1",
     "firebase": "^12.10.0",
     "firebase-admin": "^13.7.0",
     "nanostores": "^1.1.1",

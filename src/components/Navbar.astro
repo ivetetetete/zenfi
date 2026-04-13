@@ -1,54 +1,198 @@
 ---
-import { LogOut } from "@lucide/astro";
+import {
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  Grid,
+  ArrowLeftRight,
+  Settings,
+  Menu, // Added Menu icon
+  X, // Added X icon for closing
+} from "@lucide/astro";
+import "../styles/global.css";
 ---
 
-<div id="container" class="bg-white p-5 min-h-screen w-56 shadow fixed bottom-0 left-0 top-0">
-    <h1>Zenfi</h1>
-    Hola, <span id="user-name">...</span> 👋
-    <div class="flex flex-col gap-y-3 mt-5">
-        <a href=""> Inicio </a>
-        <a href=""> Configurar </a>
-        <a href=""> Categorias </a>
-        <a href=""> Transacciones </a>
-    </div>
+<header
+  class="md:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-zenfi-sand px-5 flex items-center justify-between z-[60]"
+>
+  <h1 class="text-xl font-black text-zenfi-brown">Zenfi</h1>
+  <button id="mobile-menu-open" class="text-zenfi-brown p-2">
+    <Menu class="w-6 h-6" />
+  </button>
+</header>
 
-    <a href="" class="flex flex-row items-center gap-x-2 mt-5">
-        <LogOut class="w-5 h-5" color="#000" />
-        <p>Cerrar sesión</p>
+<div
+  id="sidebar"
+  class="bg-white p-5 h-screen w-64 shadow fixed bottom-0 left-0 top-0 z-[100] md:flex flex-col border-r border-zenfi-sand"
+>
+  <button
+    id="mobile-menu-close"
+    class="md:hidden absolute top-5 right-5 text-zenfi-taupe"
+  >
+    <X class="w-6 h-6" />
+  </button>
+
+  <button
+    id="toggle-sidebar"
+    class="hidden md:block absolute -right-3 top-10 bg-white border border-zenfi-sand rounded-full p-1 shadow-sm hover:text-zenfi-terra"
+  >
+    <ChevronLeft id="icon-left" class="w-4 h-4" />
+    <ChevronRight id="icon-right" class="w-4 h-4 hidden" />
+  </button>
+
+  <div class="mb-8 mt-2 md:mt-0">
+    <h1 class="text-2xl font-black text-zenfi-brown logo-text">Zenfi</h1>
+  </div>
+
+  <nav class="flex flex-col gap-y-2 flex-1 mb-5">
+    <a
+      href="/dashboard"
+      class="nav-item opacity-0 -translate-x-4 transition-all duration-500 delay-100 flex items-center gap-x-3 p-3 rounded-xl hover:bg-zenfi-cream font-bold text-zenfi-brown"
+    >
+      <Home class="w-5 h-5" />
+      <span class="link-text">Inicio</span>
     </a>
+    <a
+      href="/categories"
+      class="nav-item opacity-0 -translate-x-4 transition-all duration-500 delay-200 flex items-center gap-x-3 p-3 rounded-xl hover:bg-zenfi-cream font-bold text-zenfi-brown"
+    >
+      <Grid class="w-5 h-5" />
+      <span class="link-text">Categorías</span>
+    </a>
+    <a
+      href="/transactions"
+      class="nav-item opacity-0 -translate-x-4 transition-all duration-500 delay-300 flex items-center gap-x-3 p-3 rounded-xl hover:bg-zenfi-cream font-bold text-zenfi-brown"
+    >
+      <ArrowLeftRight class="w-5 h-5" />
+      <span class="link-text">Transacciones</span>
+    </a>
+    <a
+      href="/settings"
+      class="nav-item opacity-0 -translate-x-4 transition-all duration-500 delay-400 flex items-center gap-x-3 p-3 rounded-xl hover:bg-zenfi-cream font-bold text-zenfi-brown"
+    >
+      <Settings class="w-5 h-5" />
+      <span class="link-text">Configurar</span>
+    </a>
+  </nav>
+  <hr class="my-2 border-zenfi-sand" />
+  <button
+    id="logout-btn"
+    class="flex flex-row items-center gap-x-3 p-3 mb-2 text-zenfi-terra font-bold hover:bg-red-50 rounded-xl transition-colors bg-white"
+    style="width: 100%;"
+  >
+    <LogOut class="w-5 h-5" />
+    <span class="link-text">Cerrar sesión</span>
+  </button>
 </div>
 
+<div
+  id="sidebar-overlay"
+  class="fixed inset-0 bg-black/20 backdrop-blur-sm z-[90] hidden md:hidden"
+>
+</div>
+
+<style>
+  @reference "../styles/global.css";
+
+  #sidebar {
+    /* Ensure the sidebar starts off-screen on mobile */
+    transform: translateX(-100%);
+    transition:
+      transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+      width 0.3s ease;
+    will-change: transform;
+  }
+
+  /* Reset for Desktop */
+  @media (min-width: 768px) {
+    #sidebar {
+      transform: translateX(0);
+    }
+    .nav-item {
+      opacity: 1 !important;
+      transform: translateX(0) !important;
+    }
+  }
+
+  /* Triggered via JS on Mobile */
+  #sidebar.show-mobile {
+    transform: translateX(0);
+  }
+
+  /* Show nav items when sidebar is active */
+  #sidebar.show-mobile .nav-item {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Desktop Collapsed state */
+  #sidebar.sidebar-collapsed {
+    @apply md:w-20 px-3;
+  }
+  #sidebar.sidebar-collapsed .link-text,
+  #sidebar.sidebar-collapsed .logo-text {
+    @apply hidden;
+  }
+
+  #sidebar-overlay {
+    transition: opacity 0.4s ease;
+  }
+  #sidebar-overlay.opacity-100 {
+    display: block !important;
+  }
+</style>
+
 <script>
-    // cerrar sesión
-    import { signOut } from "firebase/auth";
-    import { auth } from "../firebase/clients";
-    import { $user } from "../store/userStore";
+  import { signOut } from "firebase/auth";
+  import { auth } from "../firebase/clients";
 
-    const nameElement = document.getElementById("user-name");
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("sidebar-overlay");
+  const openBtn = document.getElementById("mobile-menu-open");
+  const closeBtn = document.getElementById("mobile-menu-close");
 
-    // Nos suscribimos a los cambios del store
-    $user.subscribe((user: { name?: string } | null) => {
-        if (user && nameElement) {
-            nameElement.textContent = user.name || "Usuario";
-        } else {
-            // Si no hay usuario, mandarlo al login
-            // window.location.href = "/auth";
-        }
-    });
+  const toggleMobileMenu = () => {
+    const isOpen = sidebar?.classList.contains("show-mobile");
 
-    const logoutLink = document.querySelector(
-        'a[href=""]',
-    ) as HTMLAnchorElement;
-    logoutLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        signOut(auth)
-            .then(() => {
-                // Sign-out successful.
-                window.location.href = "/auth"; // Redirige al login después de cerrar sesión
-            })
-            .catch((error) => {
-                // An error happened.
-                console.error("Error al cerrar sesión:", error);
-            });
-    });
+    if (!isOpen) {
+      // Opening
+      overlay?.classList.remove("hidden");
+      // Small delay to trigger browser paint for the overlay opacity
+      setTimeout(() => overlay?.classList.add("opacity-100"), 10);
+      sidebar?.classList.add("show-mobile");
+      document.body.style.overflow = "hidden";
+    } else {
+      // Closing
+      sidebar?.classList.remove("show-mobile");
+      overlay?.classList.remove("opacity-100");
+      setTimeout(() => overlay?.classList.add("hidden"), 400);
+      document.body.style.overflow = "";
+    }
+  };
+
+  const toggleBtn = document.getElementById("toggle-sidebar");
+  const iconLeft = document.getElementById("icon-left");
+  const iconRight = document.getElementById("icon-right");
+
+  toggleBtn?.addEventListener("click", () => {
+    sidebar?.classList.toggle("sidebar-collapsed");
+    iconLeft?.classList.toggle("hidden");
+    iconRight?.classList.toggle("hidden");
+  });
+
+  openBtn?.addEventListener("click", toggleMobileMenu);
+  closeBtn?.addEventListener("click", toggleMobileMenu);
+  overlay?.addEventListener("click", toggleMobileMenu);
+
+  // --- Logout Logic ---
+  const logoutBtn = document.getElementById("logout-btn");
+  logoutBtn?.addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+      window.location.href = "/auth";
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  });
 </script>
